@@ -42,7 +42,8 @@ def generate_page(from_path, template_path, dest_path, base_url):
     html_template_file.close()
 
     html_node_str = markdown_to_html_node(markdown_text).to_html()
-    index_html = template_html.replace("{{ Title }}", title).replace("{{ Content }}", html_node_str).replace('href="', f'href="{base_url}').replace('src="', f'src="{base_url}')
+    index_html = template_html.replace("{{ Title }}", title).replace("{{ Content }}", html_node_str)
+    print(index_html.replace('href="', f'href="{base_url}').replace('src="', f'src="{base_url}').replace("/Static-Site-Generator/index.css", "/index.css"))
 
 
     try:
@@ -96,12 +97,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-
-
-# os.path.exists
-# os.listdir
-# os.path.join
-# os.path.isfile
-# os.mkdir
-# shutil.copy
-# shutil.rmtree
