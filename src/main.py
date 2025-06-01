@@ -1,5 +1,6 @@
-import os, shutil
+import os, shutil, sys
 from markdown_blocks import *
+
 
 def copy_static_to_public(to_dir, from_dir):
 
@@ -27,7 +28,7 @@ def copy_static_to_public(to_dir, from_dir):
             print(f"Copying {static_file} to {to_dir}")
         count += 1
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, base_url):
     print(f"\nGenerating page from {from_path} to {dest_path} using {template_path}")
     
     markdown_text_file = open(from_path, "r")
@@ -41,7 +42,8 @@ def generate_page(from_path, template_path, dest_path):
     html_template_file.close()
 
     html_node_str = markdown_to_html_node(markdown_text).to_html()
-    index_html = template_html.replace("{{ Title }}", title).replace("{{ Content }}", html_node_str)
+    index_html = template_html.replace("{{ Title }}", title).replace("{{ Content }}", html_node_str).replace('href="', f'href="{base_url}').replace('src="', f'src="{base_url}')
+
 
     try:
         index_html_file = open(dest_path, "x")
@@ -56,15 +58,7 @@ def generate_page(from_path, template_path, dest_path):
     except Exception as error:
         raise Exception("Something went wrong... error")
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
-    # if os.path.exists(f"{dest_dir_path}") and len(os.listdir(f"{dest_dir_path}")) > 0:
-    #     print(f"{dest_dir_path}/content => Exists and full:\n{os.listdir(dir_path_content)}\nRemoving file...")
-    #     shutil.rmtree(f"{dest_dir_path}")
-    # try:
-    #     os.mkdir(f"{dest_dir_path}")
-    # except FileExistsError:
-    #     raise FileExistsError("Folder Content exists already")
-    
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, base_url):
     content_dir_files = os.listdir(dir_path_content)
 
     count = 1
@@ -74,29 +68,30 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
 
         print(f"{count} => {dir_path_content}/{content_file} | Is file? = {os.path.isfile(f'{dir_path_content}/index.html')}")
         if os.path.isfile(f"{dir_path_content}/{content_file}"):
-            generate_page(f"{dir_path_content}/{content_file}", template_path, f"{dest_dir_path}/index.html")
+            generate_page(f"{dir_path_content}/{content_file}", template_path, f"{dest_dir_path}/index.html", base_url)
         else:
-            generate_pages_recursive(f"{dir_path_content}/{content_file}", template_path, f"{dest_dir_path}/{content_file}")
+            generate_pages_recursive(f"{dir_path_content}/{content_file}", template_path, f"{dest_dir_path}/{content_file}", base_url)
 
         count += 1
 
 
 def main():
-    copy_static_to_public("/Users/itayat/Learning/BootDev/Static-Site-Generator/public", "/Users/itayat/Learning/BootDev/Static-Site-Generator/src/static")
+    args = sys.argv
+    if len(sys.argv) <= 1:
+        BASE_URL = "/"
+    else:
+        BASE_URL = args[1]
+    
 
-    # print("\n================ Generating Index Page =================\n ")
-    # generate_page("/Users/itayat/Learning/BootDev/Static-Site-Generator/src/public/",
-    #               "/Users/itayat/Learning/BootDev/Static-Site-Generator/src/template.html",
-    #               "/Users/itayat/Learning/BootDev/Static-Site-Generator/src/")
+    copy_static_to_public("/Users/itayat/Learning/BootDev/Static-Site-Generator/docs", "/Users/itayat/Learning/BootDev/Static-Site-Generator/src/static")
 
+    
 
     print("\n================ Generating Pages =================\n ")
     generate_pages_recursive("/Users/itayat/Learning/BootDev/Static-Site-Generator/content",
                             "/Users/itayat/Learning/BootDev/Static-Site-Generator/src/template.html",
-                            "/Users/itayat/Learning/BootDev/Static-Site-Generator/public")
+                            "/Users/itayat/Learning/BootDev/Static-Site-Generator/docs", BASE_URL)
 
-    
-    
 
     
 if __name__ == "__main__":
